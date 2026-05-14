@@ -15,7 +15,7 @@
   {% if users %}
     <ul class="list-group">
       {% for user in users %}
-        <li class="list-group-item">{{ user.u_id }} - {{ user.first_name }} {{ user.last_name }}</li>
+        <li class="list-group-item">{{ user.u_id }} - {{ user.first_name }} {{ user.last_name }} - {{ user.email }} - Date Created: {{ user.creation_date }}</li>
       {% endfor %}
     </ul>
   {% else %}
@@ -24,15 +24,45 @@
 </section>
 
 <section>
-  <h2 class="h5">Example Records</h2>
-  {% if records %}
+  <h2 class="h5">Category Records</h2>
+  {% if categories %}
     <ul class="list-group">
-      {% for record in records %}
-        <li class="list-group-item">{{ record.title }}</li>
+      {% for category in categories %}
+        <li class="list-group-item">{{ category.c_id }} - {{ category.c_name }} - {{ category.c_desc }} - {{ category.c_goal }} - Is custom: {{category.is_custom}}</li>
       {% endfor %}
     </ul>
   {% else %}
     <div class="alert alert-info mb-0">No records yet. Add some through the Flask shell or extend routes with a form/API.</div>
   {% endif %}
 </section>
+
+<section>
+  <h2 class="h5">Monthly Transaction Records</h2>
+  {% if monthly_transactions %}
+    <ul class="list-group">
+      {% for monthly_transaction in monthly_transactions %}
+        <li class="list-group-item">{{ monthly_transaction.year }} - {{ monthly_transaction.month }} - {{ monthly_transaction.month_goal }} - Last updated: {{ monthly_transaction.last_updated }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="alert alert-info mb-0">No records yet. Add some through the Flask shell or extend routes with a form/API.</div>
+  {% endif %}
+</section>
+
+
+<section>
+  <h2 class="h5">Transaction Records</h2>
+  {% if transactions %}
+    <ul class="list-group">
+      {% for transaction in transactions %}
+        <li class="list-group-item">{{ transaction.t_id }} - {{ transaction.user.first_name }} {{ transaction.user.last_name }} - {{ transaction.category.c_name }} - Item: {{ transaction.item_name }} - Vendor: {{ transaction.vendor_name }} - 
+          Purchase Date: {{ transaction.purchase_date }} - Amount: {{ transaction.t_amount }} - Payment Method: {{ transaction.payment_method }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="alert alert-info mb-0">No records yet. Add some through the Flask shell or extend routes with a form/API.</div>
+  {% endif %}
+</section>
+
 {% endblock %}
