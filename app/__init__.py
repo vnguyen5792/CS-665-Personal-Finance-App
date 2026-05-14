@@ -10,6 +10,8 @@ def create_app(config_class=Config):
 
     db.init_app(app)
 
+# Import models so SQLAlchemy knows about them before creating the database
+    from app import models
     from .routes import main
 
     app.register_blueprint(main)
