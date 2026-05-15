@@ -88,25 +88,60 @@ def add_transaction():
 # --- EDIT TRANSACTION ---
 @main.route('/transactions/edit/<string:t_id>', methods=['GET', 'POST'])
 def edit_transaction(t_id):
-    transaction = Transaction.query.get_or_404(t_id)
+    tx = Transaction.query.get_or_404(t_id)
     
     if request.method == 'POST':
         date_str = request.form.get('purchase_date')
-        transaction.purchase_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
-        transaction.u_id = request.form.get('u_id')
-        transaction.c_id = request.form.get('c_id')
-        transaction.item_name = request.form.get('item_name')
-        transaction.vendor_name = request.form.get('vendor_name')
-        transaction.t_amount = float(request.form.get('t_amount'))
-        transaction.payment_method = request.form.get('payment_method')
+        parsed_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+
+        # --- NEW PURCHASER LOGIC ---
+        selected_u_id = request.form.get('u_id')
+        
+        if selected_u_id == 'new':
+            new_u_id = f"U_{uuid.uuid4().hex[:5].upper()}"
+            new_user = User(
+                u_id=new_u_id,
+                first_name=request.form.get('new_first_name'),
+                last_name=request.form.get('new_last_name'),
+                email=request.form.get('new_email')
+            )
+            db.session.add(new_user)
+            db.session.flush() 
+            selected_u_id = new_u_id
+
+        # --- NEW CATEGORY LOGIC ---
+        selected_c_id = request.form.get('c_id')
+        
+        if selected_c_id == 'new':
+            new_c_id = f"C_{uuid.uuid4().hex[:5].upper()}"
+            new_cat = Category(
+                c_id=new_c_id,
+                c_name=request.form.get('new_category_name'),
+                c_desc='User created category',
+                c_goal=0.0,
+                is_custom=True
+            )
+            db.session.add(new_cat)
+            db.session.flush() 
+            selected_c_id = new_c_id
+
+        # --- UPDATE EXISTING TRANSACTION ---
+        tx.u_id = selected_u_id
+        tx.c_id = selected_c_id
+        tx.item_name = request.form.get('item_name')
+        tx.vendor_name = request.form.get('vendor_name')
+        tx.purchase_date = parsed_date
+        tx.t_amount = float(request.form.get('t_amount'))
+        tx.payment_method = request.form.get('payment_method')
         
         db.session.commit()
+        
         flash("Transaction updated successfully!", "success")
         return redirect(url_for('main.transactions'))
 
     categories = Category.query.all()
     users = User.query.all()
-    return render_template('edit_transaction.html', transaction=transaction, categories=categories, users=users)
+    return render_template('edit_transaction.html', transaction=tx, categories=categories, users=users)
 
 # --- DELETE TRANSACTION ---
 @main.route('/transactions/delete/<string:t_id>', methods=['POST'])

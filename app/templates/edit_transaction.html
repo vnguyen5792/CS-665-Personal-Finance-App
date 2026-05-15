@@ -50,4 +50,86 @@
                         </select>
                         
                         <div id="newCategoryFields" class="d-none mt-2 p-3 bg-light border rounded">
-                            <input type="text" name="new_category_name" id="newCategoryName" class="
+                            <input type="text" name="new_category_name" id="newCategoryName" class="form-control form-control-sm" placeholder="New Category Name">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Item Name</label>
+                        <input type="text" name="item_name" class="form-control" required value="{{ transaction.item_name }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vendor</label>
+                        <input type="text" name="vendor_name" class="form-control" value="{{ transaction.vendor_name }}">
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Amount ($)</label>
+                        <input type="number" name="t_amount" step="0.01" min="0" class="form-control" required value="{{ '%.2f'|format(transaction.t_amount) }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date & Time</label>
+                        <input type="datetime-local" name="purchase_date" class="form-control" required value="{{ transaction.purchase_date.strftime('%Y-%m-%dT%H:%M') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="Credit" {% if transaction.payment_method == 'Credit' %}selected{% endif %}>Credit</option>
+                            <option value="Debit" {% if transaction.payment_method == 'Debit' %}selected{% endif %}>Debit</option>
+                            <option value="Cash" {% if transaction.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                            <option value="Tap2Pay" {% if transaction.payment_method == 'Tap2Pay' %}selected{% endif %}>Tap2Pay</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('main.transactions') }}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleNewFields() {
+    // 1. Handle Purchaser Dropdown
+    const pSelect = document.getElementById('purchaserSelect');
+    const pFields = document.getElementById('newPurchaserFields');
+    const fName = document.getElementById('newFirstName');
+    const lName = document.getElementById('newLastName');
+    const email = document.getElementById('newEmail');
+
+    if (pSelect.value === 'new') {
+        pFields.classList.remove('d-none');
+        fName.required = true;
+        lName.required = true;
+        email.required = true;
+    } else {
+        pFields.classList.add('d-none');
+        fName.required = false;
+        lName.required = false;
+        email.required = false;
+        fName.value = ''; lName.value = ''; email.value = ''; 
+    }
+
+    // 2. Handle Category Dropdown
+    const cSelect = document.getElementById('categorySelect');
+    const cFields = document.getElementById('newCategoryFields');
+    const cName = document.getElementById('newCategoryName');
+
+    if (cSelect.value === 'new') {
+        cFields.classList.remove('d-none');
+        cName.required = true;
+    } else {
+        cFields.classList.add('d-none');
+        cName.required = false;
+        cName.value = ''; 
+    }
+}
+</script>
+{% endblock %}
