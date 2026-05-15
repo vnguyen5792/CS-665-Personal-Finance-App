@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Add Transaction | FinanceApp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4 shadow-sm">
+            <h2 class="h5 mb-4">Add New Transaction</h2>
+            
+            <form method="POST" action="{{ url_for('main.add_transaction') }}">
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Purchaser</label>
+                        <select name="u_id" id="purchaserSelect" class="form-select" required onchange="toggleNewFields()">
+                            <option value="">Select User...</option>
+                            {% for u in users %}
+                                <option value="{{ u.u_id }}">{{ u.first_name }} {{ u.last_name }}</option>
+                            {% endfor %}
+                            <option value="new" class="text-primary fw-bold">+ Add New Purchaser...</option>
+                        </select>
+                        
+                        <div id="newPurchaserFields" class="d-none mt-2 p-3 bg-light border rounded">
+                            <div class="mb-2">
+                                <input type="text" name="new_first_name" id="newFirstName" class="form-control form-control-sm" placeholder="First Name">
+                            </div>
+                            <div class="mb-2">
+                                <input type="text" name="new_last_name" id="newLastName" class="form-control form-control-sm" placeholder="Last Name">
+                            </div>
+                            <div>
+                                <input type="email" name="new_email" id="newEmail" class="form-control form-control-sm" placeholder="Email Address">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Category</label>
+                        <select name="c_id" id="categorySelect" class="form-select" required onchange="toggleNewFields()">
+                            <option value="">Select Category...</option>
+                            {% for c in categories %}
+                                <option value="{{ c.c_id }}">{{ c.c_name }}</option>
+                            {% endfor %}
+                            <option value="new" class="text-primary fw-bold">+ Add New Category...</option>
+                        </select>
+                        
+                        <div id="newCategoryFields" class="d-none mt-2 p-3 bg-light border rounded">
+                            <input type="text" name="new_category_name" id="newCategoryName" class="form-control form-control-sm" placeholder="New Category Name">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Item Name</label>
+                        <input type="text" name="item_name" class="form-control" required placeholder="e.g., Dinner, Gas">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vendor</label>
+                        <input type="text" name="vendor_name" class="form-control" placeholder="e.g., Freddy's">
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Amount ($)</label>
+                        <input type="number" name="t_amount" step="0.01" min="0" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date & Time</label>
+                        <input type="datetime-local" name="purchase_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="Credit">Credit</option>
+                            <option value="Debit">Debit</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Tap2Pay">Tap2Pay</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('main.transactions') }}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleNewFields() {
+    // 1. Handle Purchaser Dropdown
+    const pSelect = document.getElementById('purchaserSelect');
+    const pFields = document.getElementById('newPurchaserFields');
+    const fName = document.getElementById('newFirstName');
+    const lName = document.getElementById('newLastName');
+    const email = document.getElementById('newEmail');
+
+    if (pSelect.value === 'new') {
+        pFields.classList.remove('d-none');
+        fName.required = true;
+        lName.required = true;
+        email.required = true;
+    } else {
+        pFields.classList.add('d-none');
+        fName.required = false;
+        lName.required = false;
+        email.required = false;
+        fName.value = ''; lName.value = ''; email.value = ''; // clear data if they close it
+    }
+
+    // 2. Handle Category Dropdown
+    const cSelect = document.getElementById('categorySelect');
+    const cFields = document.getElementById('newCategoryFields');
+    const cName = document.getElementById('newCategoryName');
+
+    if (cSelect.value === 'new') {
+        cFields.classList.remove('d-none');
+        cName.required = true;
+    } else {
+        cFields.classList.add('d-none');
+        cName.required = false;
+        cName.value = ''; // clear data if they close it
+    }
+}
+</script>
+{% endblock %}

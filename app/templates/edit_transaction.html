@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Edit Transaction | FinanceApp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h5 mb-0">Edit Transaction</h2>
+            </div>
+            
+            <form method="POST" action="{{ url_for('main.edit_transaction', t_id=transaction.t_id) }}">
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Purchaser</label>
+                        <select name="u_id" id="purchaserSelect" class="form-select" required onchange="toggleNewFields()">
+                            <option value="">Select User...</option>
+                            {% for u in users %}
+                                <option value="{{ u.u_id }}" {% if transaction.u_id == u.u_id %}selected{% endif %}>
+                                    {{ u.first_name }} {{ u.last_name }}
+                                </option>
+                            {% endfor %}
+                            <option value="new" class="text-primary fw-bold">+ Add New Purchaser...</option>
+                        </select>
+                        
+                        <div id="newPurchaserFields" class="d-none mt-2 p-3 bg-light border rounded">
+                            <div class="mb-2">
+                                <input type="text" name="new_first_name" id="newFirstName" class="form-control form-control-sm" placeholder="First Name">
+                            </div>
+                            <div class="mb-2">
+                                <input type="text" name="new_last_name" id="newLastName" class="form-control form-control-sm" placeholder="Last Name">
+                            </div>
+                            <div>
+                                <input type="email" name="new_email" id="newEmail" class="form-control form-control-sm" placeholder="Email Address">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Category</label>
+                        <select name="c_id" id="categorySelect" class="form-select" required onchange="toggleNewFields()">
+                            <option value="">Select Category...</option>
+                            {% for c in categories %}
+                                <option value="{{ c.c_id }}" {% if transaction.c_id == c.c_id %}selected{% endif %}>
+                                    {{ c.c_name }}
+                                </option>
+                            {% endfor %}
+                            <option value="new" class="text-primary fw-bold">+ Add New Category...</option>
+                        </select>
+                        
+                        <div id="newCategoryFields" class="d-none mt-2 p-3 bg-light border rounded">
+                            <input type="text" name="new_category_name" id="newCategoryName" class="
