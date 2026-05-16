@@ -41,17 +41,23 @@
 
 <section>
   <h2 class="h5">Monthly Transaction Records</h2>
-  {% if monthly_transactions %}
+  {% if monthly_transaction %}
     <ul class="list-group">
-      {% for monthly_transaction in monthly_transactions %}
-        <li class="list-group-item">{{ monthly_transaction.year }} - {{ monthly_transaction.month }} - {{ monthly_transaction.month_goal }} - Last updated: {{ monthly_transaction.last_updated }}</li>
+      {% for mt in monthly_transaction %}
+        <li class="list-group-item">{{ mt.year }} - {{ mt.month }} - {{ mt.month_goal }} - Last updated: {{ mt.last_updated }}</li>
+        <section class="text-end">
+          <a href="{{ url_for('main.edit_monthly', year=mt.year, month=mt.month) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+          
+          <form action="{{ url_for('main.delete_monthly', year=mt.year, month=mt.month) }}" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this monthly budget?');">Delete</button>
+          </form>
+        </section>
       {% endfor %}
     </ul>
   {% else %}
     <div class="alert alert-info mb-0">No records yet. Add some through the Flask shell or extend routes with a form/API.</div>
   {% endif %}
 </section>
-
 
 <section>
   <h2 class="h5">Transaction Records</h2>

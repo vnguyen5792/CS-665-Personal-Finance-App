@@ -16,7 +16,7 @@ def index():
     categories = Category.query.order_by(Category.c_id.asc()).all()
     transactions = Transaction.query.order_by(Transaction.t_id.asc()).all()
     monthly_transactions = MonthlyTransaction.query.order_by(MonthlyTransaction.year.asc(), MonthlyTransaction.month.asc()).all()
-    return render_template("index.html", users=users, categories=categories, transactions=transactions, monthly_transactions=monthly_transactions)
+    return render_template("index.html", users=users, categories=categories, transactions=transactions, monthly_transaction=monthly_transactions)
 
 # --- VIEW ALL TRANSACTIONS ---
 @main.route('/transactions')
@@ -151,6 +151,61 @@ def delete_transaction(t_id):
     db.session.commit()
     flash("Transaction deleted.", "danger")
     return redirect(url_for('main.transactions'))
+
+# --- CREATE MONTHLY BUDGET ---
+@main.route('/monthly/add', methods=['GET', 'POST'])
+def add_monthly():
+    if request.method == 'POST':
+        m = int(request.form.get('month'))
+        y = int(request.form.get('year'))
+        
+        # Prevent database crashes by checking if this month/year combo already exists!
+        existing = MonthlyTransaction.query.filter_by(month=m, year=y).first()
+        if existing:
+            flash(f"A budget for {m}/{y} already exists! Please edit it instead.", "danger")
+            return redirect(url_for('main.add_monthly'))
+
+        new_mt = MonthlyTransaction(
+            month=m,
+            year=y,
+            month_goal=float(request.form.get('month_goal')),
+            last_updated=datetime.utcnow().date()
+        )
+        db.session.add(new_mt)
+        db.session.commit()
+        
+        flash(f"Monthly budget for {m}/{y} created successfully!", "success")
+        return redirect(url_for('main.index'))
+    
+    return render_template('add_monthly.html')
+
+# --- EDIT MONTHLY BUDGET ---
+@main.route('/monthly/edit/<int:year>/<int:month>', methods=['GET', 'POST'])
+def edit_monthly(year, month):
+    # Query using the composite key
+    mt = MonthlyTransaction.query.filter_by(year=year, month=month).first_or_404()
+    
+    if request.method == 'POST':
+        # We don't let them change the month/year here, only the goal amount
+        mt.month_goal = float(request.form.get('month_goal'))
+        mt.last_updated = datetime.utcnow().date()
+        
+        db.session.commit()
+        flash(f"Budget goal for {month}/{year} updated!", "success")
+        return redirect(url_for('main.index'))
+        
+    return render_template('edit_monthly.html', mt=mt)
+
+# --- DELETE MONTHLY BUDGET ---
+@main.route('/monthly/delete/<int:year>/<int:month>', methods=['POST'])
+def delete_monthly(year, month):
+    mt = MonthlyTransaction.query.filter_by(year=year, month=month).first_or_404()
+    
+    db.session.delete(mt)
+    db.session.commit()
+    
+    flash(f"Budget for {month}/{year} deleted.", "success")
+    return redirect(url_for('main.index'))
 
 @main.route('/stats')
 def stats():

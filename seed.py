@@ -1,18 +1,33 @@
 from app import create_app
 from app.extensions import db
+from sqlalchemy import text
 from app.models import User, Category, MonthlyTransaction, Transaction
 from datetime import datetime
 
-# Initialize the Flask application
 app = create_app()
 
-# Run database operations within the app context
 with app.app_context():
-    print("Clearing old data...")
-    db.drop_all()   
-    db.create_all() 
+    print("Reading schema.sql...")
+    
+    # 1. Open and read the raw SQL file
+    with open('schema.sql', 'r') as file:
+        sql_script = file.read()
+        
+    # 2. Execute the script
+    # SQLite requires executing statements one by one if there are multiple.
+    # We split the script by the semicolon delimiter.
+    commands = sql_script.split(';')
+    
+    print("Building tables from SQL script...")
+    for command in commands:
+        if command.strip(): # Ignore empty strings
+            db.session.execute(text(command))
+            
+    db.session.commit()
+    print("Schema created successfully!")
 
-    print("Adding complete dummy data from Project 3...")
+    # 3. Add your dummy data below here...
+    print("Adding complete dummy data...")
 
     # --- 1. Create Users ---
     users = [

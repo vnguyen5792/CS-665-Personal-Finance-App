@@ -46,8 +46,15 @@
             {% endif %}
 
             <div class="progress mb-4" style="height: 25px; border-radius: 12px;">
-                <div class="progress-bar {{ bar_color }}" role="progressbar" style="width: {{ percent_used }}%;" aria-valuenow="{{ percent_used }}" aria-valuemin="0" aria-valuemax="100">
-                    {{ "%.1f"|format(percent_used) }}%
+                {# Ensure a numeric dot-formatted percentage and clamp to 0-100 to produce valid CSS values #}
+                {% set pct = '%.1f'|format(percent_used if percent_used <= 100 else 100) %}
+                {% if percent_used < 0 %}
+                    {% set pct = '0.0' %}
+                {% endif %}
+                <div class="progress-bar {{ bar_color }}" role="progressbar"
+                     style="width: {{ pct }}%;"
+                     aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ pct }}%
                 </div>
             </div>
 
