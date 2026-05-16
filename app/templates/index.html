@@ -15,9 +15,12 @@
   {% if users %}
     <ul class="list-group">
       {% for user in users %}
-        <li class="list-group-item">{{ user.u_id }} - {{ user.first_name }} {{ user.last_name }} - {{ user.email }} - Date Created: {{ user.creation_date }}</li>
+        <li class="list-group-item">
+          {{ user.u_id }} - {{ user.first_name }} {{ user.last_name }} - {{ user.email }} - Date Created: {{ user.creation_date }}
+        </li>
       {% endfor %}
     </ul>
+
   {% else %}
     <div class="alert alert-info mb-0">No records yet. Add some through the Flask shell or extend routes with a form/API.</div>
   {% endif %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Stats | FinanceApp{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Financial Overview</h1>
+        <p class="text-muted mb-0">Track your spending and budget limits.</p>
+    </div>
+    
+    <form method="GET" action="{{ url_for('main.stats') }}" class="d-flex align-items-center">
+        <label for="monthSelect" class="form-label me-3 mb-0 fw-bold text-muted text-nowrap">Viewing:</label>
+        
+        <select name="period" id="monthSelect" class="form-select border-0 shadow-sm fw-bold text-primary" style="background-color: #fff;" onchange="this.form.submit()">
+            
+            {% set month_names = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] %}
+            
+            {% for mt in all_months %}
+                <option value="{{ mt.month }}-{{ mt.year }}" 
+                    {% if mt.month == target_mt.month and mt.year == target_mt.year %}selected{% endif %}>
+                    
+                    {{ month_names[mt.month] }} {{ mt.year }}
+                    
+                    {% if loop.first %} (Current){% endif %}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card p-4 shadow-sm h-100">
+            <h5 class="mb-4 text-muted border-bottom pb-2">Monthly Budget</h5>
+            
+            <div class="d-flex justify-content-between mb-1">
+                <span class="fs-4 fw-bold text-dark">${{ "%.2f"|format(total_spent) }} <small class="text-muted fs-6 fw-normal">spent</small></span>
+                <span class="fs-5 text-muted">${{ "%.2f"|format(target_mt.month_goal) }} <small class="fs-6">limit</small></span>
+            </div>
+
+            {% set bar_color = 'bg-success' %}
+            {% if percent_used > 90 %}
+                {% set bar_color = 'bg-danger' %}
+            {% elif percent_used > 75 %}
+                {% set bar_color = 'bg-warning' %}
+            {% endif %}
+
+            <div class="progress mb-4" style="height: 25px; border-radius: 12px;">
+                <div class="progress-bar {{ bar_color }}" role="progressbar" style="width: {{ percent_used }}%;" aria-valuenow="{{ percent_used }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ "%.1f"|format(percent_used) }}%
+                </div>
+            </div>
+
+            <div class="mt-auto p-3 bg-light rounded text-center">
+                <span class="text-muted d-block mb-1">Remaining Balance</span>
+                <span class="h3 mb-0 {% if remaining < 0 %}text-danger{% else %}text-success{% endif %}">
+                    ${{ "%.2f"|format(remaining) }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card p-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="mb-0 text-muted">Top Spending Categories</h5>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for stat in category_stats %}
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light rounded p-2 me-3">
+                            <span class="text-primary fw-bold">#{{ loop.index }}</span>
+                        </div>
+                        <strong>{{ stat.c_name }}</strong>
+                    </div>
+                    <span class="fw-bold">${{ "%.2f"|format(stat.total_amount) }}</span>
+                </li>
+                {% else %}
+                <li class="list-group-item py-4 text-center text-muted">
+                    No transactions recorded this month.
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

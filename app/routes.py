@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from sqlalchemy import func
+from sqlalchemy import extract, func
 from .models import User, Category, Transaction, MonthlyTransaction
 from .extensions import db
 import uuid
@@ -152,8 +152,65 @@ def delete_transaction(t_id):
     flash("Transaction deleted.", "danger")
     return redirect(url_for('main.transactions'))
 
-# --- STATS PAGE ---
 @main.route('/stats')
 def stats():
-    # SQLAlchemy grouping and sum logic goes here for budget calculations
-    return render_template('stats.html')
+    # 1. Grab EVERY month to populate the dropdown menu
+    all_months = MonthlyTransaction.query.order_by(
+        MonthlyTransaction.year.desc(), 
+        MonthlyTransaction.month.desc()
+    ).all()
+
+    if not all_months:
+        flash("No monthly budgets found. Please add one first.", "info")
+        return redirect(url_for('main.index'))
+
+    # 2. Check if the user selected a specific period from the dropdown
+    requested_period = request.args.get('period')
+    
+    if requested_period:
+        # Split "4-2026" into month=4, year=2026
+        req_month, req_year = map(int, requested_period.split('-'))
+        target_mt = MonthlyTransaction.query.filter_by(month=req_month, year=req_year).first()
+        
+        # Fallback just in case they mess with the URL manually
+        if not target_mt:
+            target_mt = all_months[0]
+    else:
+        # Default to the most recent month
+        target_mt = all_months[0]
+
+    # 3. Calculate Total Spent for the TARGET month
+    current_txs = Transaction.query.filter(
+        extract('year', Transaction.purchase_date) == target_mt.year,
+        extract('month', Transaction.purchase_date) == target_mt.month
+    ).all()
+    
+    total_spent = sum(t.t_amount for t in current_txs)
+    
+    # 4. Budget Math
+    budget = target_mt.month_goal
+    remaining = budget - total_spent
+    percent_used = (total_spent / budget) * 100 if budget > 0 else 0 
+
+    # 5. Group by Category for the TARGET month
+    category_stats = db.session.query(
+        Category.c_name,
+        func.sum(Transaction.t_amount).label('total_amount')
+    ).join(Transaction, Category.c_id == Transaction.c_id)\
+     .filter(
+        extract('year', Transaction.purchase_date) == target_mt.year,
+        extract('month', Transaction.purchase_date) == target_mt.month
+     )\
+     .group_by(Category.c_name)\
+     .order_by(func.sum(Transaction.t_amount).desc())\
+     .all()
+
+    return render_template(
+        'stats.html', 
+        target_mt=target_mt, 
+        all_months=all_months, # We pass this to build the dropdown menu!
+        total_spent=total_spent, 
+        remaining=remaining, 
+        percent_used=percent_used,
+        category_stats=category_stats
+    )
